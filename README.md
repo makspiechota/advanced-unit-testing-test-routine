@@ -23,4 +23,17 @@ Aby przygotować się do udziału w warsztacie, proszę postępować zgodnie z p
    - Zainstaluj Jest globalnie (jeśli nie używasz projektu z package.json):  
      `npm install -g jest`  
 
+4. Docker i Docker Compose
+   Warsztat wykorzystuje Docker do uruchomienia zewnętrznych serwisów (baza danych PostgreSQL, serwisy HTTP):
+   - Windows/macOS: Pobierz i zainstaluj Docker Desktop z docker.com/products/docker-desktop
+   - Linux: Zainstaluj Docker Engine i Docker Compose zgodnie z instrukcją dla swojej dystrybucji (docs.docker.com/engine/install)
+   - Po instalacji wykonaj:
+     `sudo usermod -aG docker $USER`
+     `sudo systemctl start docker && sudo systemctl enable docker`
+     Następnie wyloguj się i zaloguj ponownie (lub uruchom `newgrp docker`)
+   - Po instalacji sprawdź:
+     `docker --version`
+     `docker compose version`
+   - Upewnij się, że Docker Compose jest w wersji V2 (polecenie `docker compose`, nie `docker-compose`)
+
 Po przygotowaniu środowiska prosimy o sprawdzenie dostępu do GitHub oraz upewnienie się, że wszystkie narzędzia są poprawnie zainstalowane. Jeśli masz pytania, skontaktuj się z prowadzącym.
