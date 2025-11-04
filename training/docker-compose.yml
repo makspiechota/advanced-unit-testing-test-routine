@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: user_registration_db
+    environment:
+      POSTGRES_DB: user_registration
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d user_registration"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - exercise_network
+
+  # Email Service (unreliable - 30% failure, 3s delay)
+  email-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.email
+    container_name: email_service
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - exercise_network
+    restart: unless-stopped
+
+  # Reliable Email Service (no failures, no delays)
+  email-service-reliable:
+    build:
+      context: .
+      dockerfile: Dockerfile.email-reliable
+    container_name: email_service_reliable
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - exercise_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  exercise_network:
+    driver: bridge

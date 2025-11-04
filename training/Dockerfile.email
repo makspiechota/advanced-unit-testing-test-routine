@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy service files
+COPY services/emailServer.ts ./services/
+
+# Expose the service port
+EXPOSE 3002
+
+# Start the service
+CMD ["npx", "ts-node", "services/emailServer.ts"]
