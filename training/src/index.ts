@@ -2,20 +2,19 @@
  * Production Entry Point
  *
  * This demonstrates running the UserRegistrationService with real adapters
- * instead of mocks. Students should implement dependency injection in their
- * UserRegistrationService to accept the real EmailService and UserRepository.
+ * following the hexagonal architecture pattern.
  *
  * Make sure services are running:
- * npm start
+ * - PostgreSQL: docker-compose up -d
+ * - Email service: npm run services:start
  *
  * Then run in production mode:
  * npm run dev
  */
 
 import { UserRegistrationService } from "./UserRegistrationService";
-import { EmailService } from "./library/EmailService";
-import { EmailServiceReliable } from "./library/EmailServiceReliable";
-import { UserRepository } from "./library/UserRepository";
+import { UserRepositoryPostgresqlAdapter } from "./infrastructure/adapters/user-repository-postgresql/user-repository-postgresql.adapter";
+import { EmailSenderHttpReliableAdapter } from "./infrastructure/adapters/email-sender-http-reliable/email-sender-http-reliable.adapter";
 
 async function main() {
   console.log("=".repeat(50));
@@ -23,17 +22,12 @@ async function main() {
   console.log("=".repeat(50));
   console.log();
 
-  // TODO: Students need to modify UserRegistrationService constructor
-  // to accept dependencies (EmailService and UserRepository)
-  //
-  // Example expected constructor:
-  // constructor(emailService: EmailService, userRepository: UserRepository)
+  // Instantiate real adapters (infrastructure)
+  const userRepository = new UserRepositoryPostgresqlAdapter();
+  const emailSender = new EmailSenderHttpReliableAdapter("localhost", 3003);
 
-  const emailService = new EmailService("localhost", 3002);
-  const userRepository = new UserRepository();
-
-  // For now, this will fail because students haven't implemented dependency injection yet
-  const registrationService = new UserRegistrationService();
+  // Inject adapters into the service (dependency inversion)
+  const registrationService = new UserRegistrationService(userRepository, emailSender);
 
   try {
     console.log("Attempting to register new user...");
@@ -48,17 +42,18 @@ async function main() {
     });
 
     if (result.success) {
-      console.log("SUCCESS! User registered successfully");
+      console.log("✅ SUCCESS! User registered successfully");
       console.log(`User ID: ${result.userId}`);
     } else {
-      console.log("FAILED! Registration failed");
+      console.log("❌ FAILED! Registration failed");
       console.log(`Error: ${result.error}`);
     }
   } catch (error) {
-    console.error("ERROR:", (error as Error).message);
+    console.error("❌ ERROR:", (error as Error).message);
     console.log();
-    console.log("Note: You need to implement UserRegistrationService first!");
-    console.log("See src/UserRegistrationService.ts for requirements.");
+    console.log("Make sure the following services are running:");
+    console.log("- PostgreSQL database (docker-compose up -d)");
+    console.log("- Reliable email service (npm run services:start)");
   } finally {
     await userRepository.close();
     console.log();
